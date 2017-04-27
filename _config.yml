@@ -6,6 +6,7 @@ description: iOS开发者，射箭爱好者，其他乱七八糟的。
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://www.blogtc.com" # the base hostname & protocol for your site
 github_username: tauCross
+zhihu_username: taucross
 
 # Build settings
 markdown: kramdown
