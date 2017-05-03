@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width initial-scale=1">
 
   <title>GCD官方文档解析</title>
-  <meta name="description" content="Dispatch">
+  <meta name="description" content="官方文档">
 
   <link rel="stylesheet" href="/css/main.css">
   <link rel="canonical" href="http://localhost:4000/gcd/ios/2017/04/28/GCD%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E8%A7%A3%E6%9E%90.html">
@@ -76,18 +76,302 @@
   </header>
 
   <!-- <article class="markdown-body"> -->
-    <article class="post-content">
-      <h1 id="dispatch">Dispatch</h1>
+    <article class="markdown-body">
+      <h1 id="官方文档">官方文档</h1>
 
-<p>多核硬件上可以让代码同时提交运行在Dispatch队列中的系统。可以理解为Dispatch队列封装了底层多核系统调度的操作，我们只需要关心对Dispatch队列的操作，不需要关心任务到底分配给哪个核心。</p>
+<p>点击前往<a href="https://developer.apple.com/reference/dispatch" target="_blank">官方文档</a>。</p>
+
+<h1 id="dispatch">Dispatch</h1>
+
+<p>多核硬件上可以让代码同时提交运行在Dispatch队列中的系统。可以理解为Dispatch队列封装了底层多核系统调度的操作，我们只需要关心对Dispatch队列的操作，不需要关心任务到底分配给哪个核心，也不需要关心任务在哪个线程执行。</p>
 
 <p><img src="/Resource/GCD.png" alt="" /></p>
 
-<h3 id="aaaa">aaaa</h3>
+<p>官方文档介绍GCD反正就是很牛逼，鹅妹子嘤，在保证稳定性的前提下各种利用多核系统的CPU资源同时处理各种事务。</p>
 
-<p>GCD全称Grand Central Dispatch，</p>
+<p><strong>注意</strong></p>
 
-<p>点击前往<a href="https://developer.apple.com/reference/dispatch">官方文档</a>。</p>
+<p>如果用OC开发App的话所有的dispatch对象会被当成OC对象来管理，所以在ARC下面不需要关心内存引用计数的问题，而在MRC下则需要利用<code class="highlighter-rouge">dispatch_retain</code>与<code class="highlighter-rouge">dispatch_release</code>手动管理。</p>
+
+<pre><code class="language-objective-c">dispatch_queue_t queue = dispatch_queue_create("com.tc.demo", DISPATCH_QUEUE_SERIAL);
+...
+dispatch_retain(queue);
+...
+dispatch_release(queue);
+...
+dispatch_release(queue);
+</code></pre>
+
+<h2 id="队列管理">队列管理</h2>
+
+<h3 id="dispatch-queue-types">Dispatch Queue Types</h3>
+
+<h5 id="创建队列">创建队列</h5>
+
+<pre><code class="language-objective-c">dispatch_queue_t dispatch_queue_create(const char *label, dispatch_queue_attr_t attr);
+</code></pre>
+
+<p>参数：</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">const char *label</code></p>
+
+    <p>给队列一个标签，方便调试时区分队列，一般以反向DNS风格命名，如<code class="highlighter-rouge">"com.tc.queue"</code>，该参数可以为空（<code class="highlighter-rouge">NULL</code>）。</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">dispatch_queue_attr_t attr</code></p>
+
+    <p>这个属性指定队列类型<code class="highlighter-rouge">DISPATCH_QUEUE_SERIAL</code>为串行队列，<code class="highlighter-rouge">DISPATCH_QUEUE_CONCURRENT</code>为并行队列，该参数可为空（<code class="highlighter-rouge">NULL</code>），当该参数为空时，默认为串行队列，在iOS 4.3或更早版本上，只能指定该参数为空。</p>
+  </li>
+</ul>
+
+<h5 id="队列类型">队列类型</h5>
+
+<ul>
+  <li>
+    <p>串行队列</p>
+
+    <p><code class="highlighter-rouge">DISPATCH_QUEUE_SERIAL</code></p>
+
+    <p>按先进先出的顺序处理传入的block。</p>
+
+    <pre><code class="language-objective-c">- (void)test
+{
+    __block int index = 1;
+    dispatch_queue_t queue_serial = dispatch_queue_create("com.tc.serial", DISPATCH_QUEUE_SERIAL);
+    NSLog(@"开始运行");
+    dispatch_async(queue_serial, ^{
+        sleep(3);
+        NSLog(@"第1个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_serial, ^{
+        NSLog(@"第2个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_serial, ^{
+        sleep(5);
+        NSLog(@"第3个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_serial, ^{
+        sleep(1);
+        NSLog(@"第4个进入的Block, 第%i个出队列", index++);
+    });
+}
+</code></pre>
+
+    <p>输出（请注意时间）：</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>2017-04-28 18:18:47.732 demo[36802:2352075] 开始运行
+2017-04-28 18:18:50.736 demo[36802:2352122] 第1个进入的Block, 第1个出队列
+2017-04-28 18:18:50.737 demo[36802:2352122] 第2个进入的Block, 第2个出队列
+2017-04-28 18:18:55.740 demo[36802:2352122] 第3个进入的Block, 第3个出队列
+2017-04-28 18:18:56.744 demo[36802:2352122] 第4个进入的Block, 第4个出队列
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>并行队列</p>
+
+    <p><code class="highlighter-rouge">DISPATCH_QUEUE_CONCURRENT</code></p>
+
+    <p>传入的block被并发的处理，先传入的block不一定比后传入的block先完成，取决于之前block的处理时间，文档上还说虽然是并发处理的，但可以使用barrier block在并行队列中设置同步点，关于barrier block会在后面讲到。</p>
+
+    <pre><code class="language-objective-c">- (void)test
+{
+    __block int index = 1;
+    dispatch_queue_t queue_concurrent = dispatch_queue_create("com.tc.concurrent", DISPATCH_QUEUE_CONCURRENT);
+    NSLog(@"开始运行");
+    dispatch_async(queue_concurrent, ^{
+        sleep(3);
+        NSLog(@"第1个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_concurrent, ^{
+        NSLog(@"第2个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_concurrent, ^{
+        sleep(5);
+        NSLog(@"第3个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_concurrent, ^{
+        sleep(1);
+        NSLog(@"第4个进入的Block, 第%i个出队列", index++);
+    });
+}
+</code></pre>
+
+    <p>输出（请注意时间）：</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>2017-04-28 18:28:25.394 demo[36859:2359335] 开始运行
+2017-04-28 18:28:25.394 demo[36859:2359507] 第2个进入的Block, 第1个出队列
+2017-04-28 18:28:26.395 demo[36859:2359505] 第4个进入的Block, 第2个出队列
+2017-04-28 18:28:28.395 demo[36859:2359522] 第1个进入的Block, 第3个出队列
+2017-04-28 18:28:30.395 demo[36859:2359504] 第3个进入的Block, 第4个出队列
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<h3 id="dispatch-queue-label-constants">Dispatch Queue Label Constants</h3>
+
+<h5 id="获取队列label">获取队列Label</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>const char * dispatch_queue_get_label(dispatch_queue_t queue);
+</code></pre>
+</div>
+
+<p>参数：</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">dispatch_queue_t queue</code></p>
+
+    <p>需要获取Label的队列。</p>
+
+    <p>如果需要获取当前队列的Label则使用<code class="highlighter-rouge">DISPATCH_CURRENT_QUEUE_LABEL</code>。</p>
+  </li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>- (void)test
+{
+    dispatch_queue_t queue = dispatch_queue_create("com.tc.queue1", NULL);
+    dispatch_sync(queue, ^{
+        NSLog(@"%s", dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL));
+    });
+    NSLog(@"%s", dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL));
+    NSLog(@"%s", dispatch_queue_get_label(queue));
+}
+</code></pre>
+</div>
+
+<p>输出：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>2017-05-02 11:16:57.771 demo[38100:2468155] com.tc.queue1
+2017-05-02 11:16:57.771 demo[38100:2468155] com.apple.main-thread
+2017-05-02 11:16:57.771 demo[38100:2468155] com.tc.queue1
+</code></pre>
+</div>
+
+<h3 id="dispatch_queue_t">dispatch_queue_t</h3>
+
+<h5 id="队列">队列</h5>
+
+<pre><code class="language-dui">typedef NSObject&lt;OS_dispatch_queue&gt; *dispatch_queue_t;
+</code></pre>
+
+<p>可见<code class="highlighter-rouge">dispatch_queue_t</code>其实是个对象，也很好的解释了在MRC下为何要手动管理<code class="highlighter-rouge">dispatch_queue_t</code>的内存。</p>
+
+<p>Dispatch队列其实都是FIFO的，在串行队列上毋庸置疑。在并行队列上从表面上看并不符合FIFO的原则，但其实并行队列应该理解为n个并行的队列组合，组合中每个队列也是符合FIFO原则的，GCD帮助程序员管理了如何分配任务给这些组合里的队列。</p>
+
+<h3 id="dispatch_get_main_queue">dispatch_get_main_queue</h3>
+
+<h5 id="获取主队列">获取主队列</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>dispatch_queue_t dispatch_get_main_queue(void);
+</code></pre>
+</div>
+
+<p>这个函数返回程序的主队列，这个队列在程序一开始时就被创建并与主线程关联，主队列是串行队列。</p>
+
+<p><strong>注意：主线程与主队列并不等同</strong></p>
+
+<p>主队列在在主线程被创建并关联的时机：</p>
+
+<ol>
+  <li>调用<code class="highlighter-rouge">dispatch_main()</code></li>
+  <li>调用<code class="highlighter-rouge">UIApplicationMain</code>（iOS）或者<code class="highlighter-rouge">NSApplicationMain</code>（macOS）</li>
+  <li>在主线程使用<code class="highlighter-rouge">CFRunLoopRef</code></li>
+</ol>
+
+<p>大多数情况下我们的App会在<code class="highlighter-rouge">mian()</code>函数里使用第2种方式。</p>
+
+<p>对主队列使用<code class="highlighter-rouge">dispatch_suspend</code>、<code class="highlighter-rouge">dispatch_resume</code>、<code class="highlighter-rouge">dispatch_set_context</code>是无效的。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>- (void)test
+{
+    __block int index = 1;
+    dispatch_queue_t queue_main = dispatch_get_main_queue();
+    NSLog(@"开始运行");
+    dispatch_async(queue_main, ^{
+        sleep(3);
+        NSLog(@"第1个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_main, ^{
+        NSLog(@"第2个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_main, ^{
+        sleep(5);
+        NSLog(@"第3个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_async(queue_main, ^{
+        sleep(1);
+        NSLog(@"第4个进入的Block, 第%i个出队列", index++);
+    });
+    dispatch_suspend(queue_main);
+}
+</code></pre>
+</div>
+
+<p>输出：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>2017-05-02 16:57:01.814 demo[39074:2669261] 开始运行
+2017-05-02 16:57:04.824 demo[39074:2669261] 第1个进入的Block, 第1个出队列
+2017-05-02 16:57:04.824 demo[39074:2669261] 第2个进入的Block, 第2个出队列
+2017-05-02 16:57:09.824 demo[39074:2669261] 第3个进入的Block, 第3个出队列
+2017-05-02 16:57:10.826 demo[39074:2669261] 第4个进入的Block, 第4个出队列
+</code></pre>
+</div>
+
+<h3 id="dispatch_get_global_queue">dispatch_get_global_queue</h3>
+
+<h5 id="获取全局并行队列">获取全局并行队列</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>dispatch_queue_t dispatch_get_global_queue(long identifier, unsigned long flags);
+</code></pre>
+</div>
+
+<p>返回系统预定义的全局并行队列。</p>
+
+<p>参数：</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">long identifier</code></p>
+
+    <p>全局队列的ID，区别就在于优先级。</p>
+
+    <p>iOS8.0或以上版本：</p>
+
+    <ul>
+      <li>QOS_CLASS_USER_INTERACTIVE</li>
+      <li>QOS_CLASS_USER_INITIATED</li>
+      <li>QOS_CLASS_DEFAULT</li>
+      <li>QOS_CLASS_UTILITY</li>
+      <li>QOS_CLASS_BACKGROUND</li>
+      <li>QOS_CLASS_UNSPECIFIED</li>
+    </ul>
+
+    <p>iOS8以下的版本：</p>
+
+    <ul>
+      <li>DISPATCH_QUEUE_PRIORITY_HIGH</li>
+      <li>DISPATCH_QUEUE_PRIORITY_DEFAULT</li>
+      <li>DISPATCH_QUEUE_PRIORITY_LOW</li>
+      <li>DISPATCH_QUEUE_PRIORITY_BACKGROUND</li>
+    </ul>
+
+    <p>tips：在background队列中，对I/O操作进行了优化，具体可参考<a href="http://www.cocoachina.com/ios/20170105/18525.html" target="_blank">iOS编程中throttle那些事</a>。</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">unsigned long flags</code></p>
+
+    <p>为未来的API预留的参数，现在不用管，直接传0。</p>
+  </li>
+</ul>
+
+<p>对系统预定义队列使用<code class="highlighter-rouge">dispatch_suspend</code>、<code class="highlighter-rouge">dispatch_resume</code>、<code class="highlighter-rouge">dispatch_set_context</code>是无效的。</p>
+
+<h3 id="dispatch_set_target_queue">dispatch_set_target_queue</h3>
+
 
     </article>
   <!-- </article> -->
