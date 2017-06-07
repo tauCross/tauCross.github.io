@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>    
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width initial-scale=1">
+
+  <title>GCD官方文档解析 - 简述</title>
+  <meta name="description" content="成为iOS开发已经5年了，一直在看别人的博客，从来没有产出，偶尔看到其中一篇文章里提到，学习效率的排序是：看 &lt; 听 &lt; 跟着写Demo &lt; 实践 &lt; 教，其中“教”就包含了写文章，所以来试着写博客来让自己的知识在巩固的同时能够让大家收益。">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://localhost:4000/gcd/ios/2017/06/07/GCD%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E8%A7%A3%E6%9E%90-%E7%AE%80%E8%BF%B0.html">
+  <link rel="alternate" type="application/atom+xml" title="tauCross's Blog" href="http://localhost:4000/feed.xml" />
+  <script src="/scripts/jquery-1.11.2.min.js"></script>
+  <script src="/scripts/pithy.js"></script>
+</head>
+
+
+  <body>
+    <header class="header">
+	<div class="header-container">
+		<div class="nav">
+			
+				<li>
+					<a href="/index.html">首页</a>
+				</li>
+			
+			
+				<li>
+					<a href="/archive.html">文章列表</a>
+				</li>
+			
+			
+				<li>
+					<a href="/category.html">分类</a>
+				</li>
+			
+			<!-- 
+				<li>
+					<a href="/about.html">about</a>
+				</li>
+			 -->
+		</div>
+		<div class="description"> 都别抢！那是我的锅！ </div>
+		<ul class="social-links">
+			<li>
+				<a href="https://github.com/tauCross" title="Github" target="_blank">
+					<img width="19px" height="19px" src="/images/github.png"/>
+				</a>
+			</li>
+			<li>
+				<a href="https://www.zhihu.com/people/taucross" title="知乎" target="_blank">
+					<img width="19px" height="19px" src="/images/zhihu.png"/>
+				</a>
+			</li>
+		</ul>
+	</div>
+</header>
+
+    <br>
+    <div class="page-content">
+      <div class="wrapper">
+        <link rel="stylesheet" href="/css/github-markdown.css">
+
+<style>
+.supportFont{font-size:17px}
+</style>
+
+
+
+<div class="post">
+  <br>
+  <header class="post-header">
+    <h1 class="post-title">GCD官方文档解析 - 简述</h1>
+    <p class="post-meta">Jun 7, 2017 17:43:30</p>
+  </header>
+
+  <!-- <article class="markdown-body"> -->
+    <article class="markdown-body">
+      <p>成为iOS开发已经5年了，一直在看别人的博客，从来没有产出，偶尔看到其中一篇文章里提到，学习效率的排序是：看 &lt; 听 &lt; 跟着写Demo &lt; 实践 &lt; 教，其中“教”就包含了写文章，所以来试着写博客来让自己的知识在巩固的同时能够让大家收益。</p>
+
+<h1 id="官方文档">官方文档</h1>
+
+<p>点击前往<a href="https://developer.apple.com/reference/dispatch" target="_blank">官方文档</a>。</p>
+
+<h1 id="dispatch">Dispatch</h1>
+
+<p>多核硬件上可以让代码同时提交运行在Dispatch队列中的系统。可以理解为Dispatch队列封装了底层多核系统调度的操作，我们只需要关心对Dispatch队列的操作，不需要关心任务到底分配给哪个核心，也不需要关心任务在哪个线程执行。</p>
+
+<p><img src="/Resource/GCD.png" alt="" /></p>
+
+<p>官方文档介绍GCD反正就是很牛逼，鹅妹子嘤，在保证稳定性的前提下各种利用多核系统的CPU资源同时处理各种事务。</p>
+
+<p><strong>注意</strong></p>
+
+<p>如果用OC开发App的话所有的dispatch对象会被当成OC对象来管理，所以在ARC下面不需要关心内存引用计数的问题，而在MRC下则需要利用<code class="highlighter-rouge">dispatch_retain</code>与<code class="highlighter-rouge">dispatch_release</code>手动管理。</p>
+
+<pre><code class="language-objective-c">dispatch_queue_t queue = dispatch_queue_create("com.tc.demo", DISPATCH_QUEUE_SERIAL);
+...
+dispatch_retain(queue);
+...
+dispatch_release(queue);
+...
+dispatch_release(queue);
+</code></pre>
+
+
+    </article>
+  <!-- </article> -->
+
+  <br>
+  <br>
+  <br>
+  <br>
+  <p align=right>未经同意，禁止任何形式的转载，作者保留一切权利。如需转载请<a href="mailto:blogtc.git@gmail.com">联系作者</a>。</p>
+  <p align=right>blogtc.git@gmail.com</p>
+  <hr />
+  <br>
+  <div style="text-align:center;">
+    <p class="supportFont">你的支持是我创作的动力之一</p>
+  </div>
+  <br>
+  <div style="text-align:center;">
+    <img width="150px" height="150px" src="/images/support.png"/>
+  </div>
+  <br>
+  <div style="text-align:center;">
+    <p>支付宝扫码</p>
+  </div>
+  <br>
+  <br>
+
+</div>
+
+      </div>
+    </div>
+    
+    <footer class="footer">
+  <div id="gotop">^</div>
+  <br>
+	@2017 Blogs by tauCross.
+</footer>
+
+    
+  </body>
+
+</html>
