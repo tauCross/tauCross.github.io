@@ -5,8 +5,8 @@
     <description>iOS开发者，射箭爱好者，其他乱七八糟的。</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 07 Jun 2017 18:27:28 +0800</pubDate>
-    <lastBuildDate>Wed, 07 Jun 2017 18:27:28 +0800</lastBuildDate>
+    <pubDate>Thu, 08 Jun 2017 17:49:48 +0800</pubDate>
+    <lastBuildDate>Thu, 08 Jun 2017 17:49:48 +0800</lastBuildDate>
     <generator>Jekyll v3.4.3</generator>
     
       <item>
@@ -17,7 +17,7 @@
 
 &lt;h2 id=&quot;dispatch-queue-types&quot;&gt;Dispatch Queue Types&lt;/h2&gt;
 
-&lt;h3 id=&quot;队列的类型&quot;&gt;队列的类型&lt;/h3&gt;
+&lt;p&gt;队列的类型&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;
@@ -135,7 +135,7 @@
 
 &lt;h2 id=&quot;dispatch-queue-label-constants&quot;&gt;Dispatch Queue Label Constants&lt;/h2&gt;
 
-&lt;h3 id=&quot;获取队列label&quot;&gt;获取队列Label&lt;/h3&gt;
+&lt;p&gt;获取队列Label&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const char * dispatch_queue_get_label(dispatch_queue_t queue);
 &lt;/code&gt;&lt;/pre&gt;
@@ -175,7 +175,7 @@
 
 &lt;h2 id=&quot;dispatch_queue_t&quot;&gt;dispatch_queue_t&lt;/h2&gt;
 
-&lt;h3 id=&quot;队列&quot;&gt;队列&lt;/h3&gt;
+&lt;p&gt;队列&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-dui&quot;&gt;typedef NSObject&amp;lt;OS_dispatch_queue&amp;gt; *dispatch_queue_t;
 &lt;/code&gt;&lt;/pre&gt;
@@ -186,7 +186,7 @@
 
 &lt;h2 id=&quot;dispatch_get_main_queue&quot;&gt;dispatch_get_main_queue&lt;/h2&gt;
 
-&lt;h3 id=&quot;获取主队列&quot;&gt;获取主队列&lt;/h3&gt;
+&lt;p&gt;获取主队列&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dispatch_queue_t dispatch_get_main_queue(void);
 &lt;/code&gt;&lt;/pre&gt;
@@ -209,8 +209,6 @@
 &lt;p&gt;对主队列使用&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_suspend&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_resume&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_set_context&lt;/code&gt;是无效的。&lt;/p&gt;
 
 &lt;h2 id=&quot;dispatch_get_global_queue&quot;&gt;dispatch_get_global_queue&lt;/h2&gt;
-
-&lt;h3 id=&quot;获取全局并行队列&quot;&gt;获取全局并行队列&lt;/h3&gt;
 
 &lt;p&gt;返回系统预定义的全局并行队列。&lt;/p&gt;
 
@@ -259,7 +257,7 @@
 
 &lt;h2 id=&quot;dispatch_set_target_queue&quot;&gt;dispatch_set_target_queue&lt;/h2&gt;
 
-&lt;h3 id=&quot;给目标对象设置一个队列&quot;&gt;给目标对象设置一个队列&lt;/h3&gt;
+&lt;p&gt;给目标对象设置一个队列&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void dispatch_set_target_queue(dispatch_object_t object, dispatch_queue_t queue);
 &lt;/code&gt;&lt;/pre&gt;
@@ -433,15 +431,455 @@
 
     &lt;p&gt;更换source对应的queue。&lt;/p&gt;
 
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue_1 = dispatch_queue_create(&quot;com.tc.queue.1&quot;, DISPATCH_QUEUE_SERIAL);
+    dispatch_queue_t tc_queue_2 = dispatch_queue_create(&quot;com.tc.queue.2&quot;, DISPATCH_QUEUE_SERIAL);
+    dispatch_source_t tc_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_DATA_ADD, 0, 0, tc_queue_1);
+    dispatch_source_set_event_handler(tc_source, ^{
+        NSLog(@&quot;%li, %s&quot;, dispatch_source_get_data(tc_source), dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL));
+    });
+    dispatch_resume(tc_source);
+    dispatch_source_merge_data(tc_source, 1);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_set_target_queue(tc_source, tc_queue_2);
+        dispatch_source_merge_data(tc_source, 2);
+    });
+}
 &lt;/code&gt;&lt;/pre&gt;
     &lt;/div&gt;
 
-    &lt;p&gt;​&lt;/p&gt;
+    &lt;p&gt;输出：&lt;/p&gt;
 
-    &lt;p&gt;​&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 12:36:50.176 demo[4440:46508136] 1, com.tc.queue.1
+2017-06-08 12:36:51.176 demo[4440:46508137] 2, com.tc.queue.2
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;将io作为object参数传入&lt;/p&gt;
+
+    &lt;p&gt;根据文档上的描述，把io作为object参数传入能够改变io操作的优先级，比如目标队列的优先级是&lt;code class=&quot;highlighter-rouge&quot;&gt;DISPATCH_QUEUE_PRIORITY_BACKGROUND&lt;/code&gt;的时候，io操作在系统资源紧张的时候会受到节流器的限制。&lt;/p&gt;
+
+    &lt;p&gt;对于这块的内容将放在后面关于&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_io_t&lt;/code&gt;的内容中详细描述。&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;h2 id=&quot;dispatch_async&quot;&gt;dispatch_async&lt;/h2&gt;
+
+&lt;p&gt;提交一个异步执行的block到队列里，立即执行。这个函数会立刻返回（非阻塞），所以不影响后面代码的运行。&lt;/p&gt;
+
+&lt;p&gt;由于队列的特性，先提交的block会更早开始执行（开始-执行中-结束），在并行队列中更早提交的block不一定更早结束，而在单个的串行队列中，更早提交的block只有在执行完毕后才会执行下一个block。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void dispatch_async(dispatch_queue_t queue, dispatch_block_t block);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-4&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;block想要提交的目标队列。这个队列会被系统retain直到block运行完成，参数不可为空。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;block会被自动copy与release。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue = dispatch_queue_create(&quot;com.tc.queue&quot;, DISPATCH_QUEUE_SERIAL);
+    NSLog(@&quot;0&quot;);
+    dispatch_async(tc_queue, ^{
+        NSLog(@&quot;1&quot;);
+    });
+    dispatch_async(tc_queue, ^{
+        NSLog(@&quot;2&quot;);
+    });
+    NSLog(@&quot;3&quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 14:57:01.658 demo[5065:47129970] 0
+2017-06-08 14:57:01.659 demo[5065:47129970] 3
+2017-06-08 14:57:01.659 demo[5065:47130176] 1
+2017-06-08 14:57:01.659 demo[5065:47130176] 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_async_f&quot;&gt;dispatch_async_f&lt;/h2&gt;
+
+&lt;p&gt;一脸懵逼，看着挺吓人的，其实就是将一个C函数当做一个block丢进去异步执行，与&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_async&lt;/code&gt;差不多。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void dispatch_async_f(dispatch_queue_t queue, void *context, dispatch_function_t work);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-5&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;想要提交的目标队列。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;后面那个work的参数。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;wrok&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;work是&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_function_t&lt;/code&gt;类型的，来看下&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_function_t&lt;/code&gt;到底是啥？&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;typedef void (*dispatch_function_t)(void *_Nullable);
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_function_t&lt;/code&gt;就是个&lt;code class=&quot;highlighter-rouge&quot;&gt;void(*)()&lt;/code&gt;类型的函数指针。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue = dispatch_queue_create(&quot;com.tc.queue&quot;, DISPATCH_QUEUE_SERIAL);
+    NSLog(@&quot;0&quot;);
+    dispatch_async_f(tc_queue, NULL, tc);
+    NSLog(@&quot;2&quot;);
+}
+
+void tc()
+{
+    NSLog(@&quot;1&quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 16:04:48.242 demo[5490:48047689] 0
+2017-06-08 16:04:48.243 demo[5490:48047689] 2
+2017-06-08 16:04:48.243 demo[5490:48047881] 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_sync&quot;&gt;dispatch_sync&lt;/h2&gt;
+
+&lt;p&gt;写到这里的时候我对自己是抱有怀疑态度的，这个函数官方文档居然特么的没写！！？难道我之前用的都是私有API？瑟瑟发抖。&lt;/p&gt;
+
+&lt;p&gt;这个对应于&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_async&lt;/code&gt;异步执行，&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_sync&lt;/code&gt;是同步执行，这个函数不会立刻返回，而是等提交的block都执行完毕后再返回（阻塞），因为这个特性，使用&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_sync&lt;/code&gt;时得注意死锁的问题。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dispatch_sync(dispatch_queue_t queue, DISPATCH_NOESCAPE dispatch_block_t block);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-6&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;同&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_aync&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;同&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_aync&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue = dispatch_queue_create(&quot;com.tc.queue&quot;, DISPATCH_QUEUE_SERIAL);
+    NSLog(@&quot;0&quot;);
+    dispatch_sync(tc_queue, ^{
+        NSLog(@&quot;1&quot;);
+    });
+    dispatch_sync(tc_queue, ^{
+        NSLog(@&quot;2&quot;);
+    });
+    NSLog(@&quot;3&quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 15:59:34.024 demo[5458:47975829] 0
+2017-06-08 15:59:34.025 demo[5458:47975829] 1
+2017-06-08 15:59:34.025 demo[5458:47975829] 2
+2017-06-08 15:59:34.025 demo[5458:47975829] 3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_sync_f&quot;&gt;dispatch_sync_f&lt;/h2&gt;
+
+&lt;p&gt;道理跟&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_asyn_f&lt;/code&gt;一样，不再赘述。&lt;/p&gt;
+
+&lt;h2 id=&quot;dispatch_after&quot;&gt;dispatch_after&lt;/h2&gt;
+
+&lt;p&gt;也是常用的函数之一，用于在指定时间将block进行入队操作，所以传入的block不会被立刻执行，而是在指定时间在会被加入队列。可以指定当前时间更早的时间来实现一直等待进入队列，但这不是最佳实践，可以用&lt;code class=&quot;highlighter-rouge&quot;&gt;DISPATCH_TIME_FOREVER&lt;/code&gt;来替代。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void dispatch_after(dispatch_time_t when, dispatch_queue_t queue, dispatch_block_t block);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-7&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;when&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;一个由&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_time&lt;/code&gt;函数或&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_walltime&lt;/code&gt;函数返回的&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_time_t&lt;/code&gt;，说人话就是指定block延时多久执行。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;同&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_async&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;同&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_aync&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue = dispatch_queue_create(&quot;com.tc.queue&quot;, DISPATCH_QUEUE_SERIAL);
+    dispatch_async(tc_queue, ^{
+        NSLog(@&quot;0&quot;);
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), tc_queue, ^{
+        NSLog(@&quot;1&quot;);
+    });
+    dispatch_async(tc_queue, ^{
+        NSLog(@&quot;2&quot;);
+    });
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 16:37:15.405 demo[5730:48486382] 0
+2017-06-08 16:37:15.406 demo[5730:48486382] 2
+2017-06-08 16:37:16.405 demo[5730:48486383] 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_after_f&quot;&gt;dispatch_after_f&lt;/h2&gt;
+
+&lt;p&gt;道理跟&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_asyn_f&lt;/code&gt;一样，不再赘述。&lt;/p&gt;
+
+&lt;h2 id=&quot;dispatch_apply&quot;&gt;dispatch_apply&lt;/h2&gt;
+
+&lt;p&gt;再次懵逼，这个函数官方文档里也没有！？！&lt;/p&gt;
+
+&lt;p&gt;将一个block加入一个队列多次，并等待这些block全部完成再返回，所以这个函数是同步的（阻塞）。&lt;/p&gt;
+
+&lt;p&gt;如果指定的队列是并发队列，则这些block的调用可能也是并发执行的，所以这里需要关注可重入性。&lt;/p&gt;
+
+&lt;p&gt;可重入性相关的文章推荐&lt;a href=&quot;http://www.jianshu.com/p/8a88fbe3e1a9&quot; target=&quot;_blank&quot;&gt;可重入与线程安全&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dispatch_apply(size_t iterations, dispatch_queue_t queue, DISPATCH_NOESCAPE void (^block)(size_t));
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-8&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;iterations&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;block加入队列的次数&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;同&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_aync&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;有个类型为&lt;code class=&quot;highlighter-rouge&quot;&gt;size_t&lt;/code&gt;的返回参数，用以告诉block这是第几个调用。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue_concurrent = dispatch_queue_create(&quot;com.tc.queue.concurrent&quot;, DISPATCH_QUEUE_CONCURRENT);
+    dispatch_queue_t tc_queue_serial = dispatch_queue_create(&quot;com.tc.queue.serial&quot;, DISPATCH_QUEUE_SERIAL);
+    NSLog(@&quot;concurrent&quot;);
+    dispatch_apply(10, tc_queue_concurrent, ^(size_t index) {
+        NSLog(@&quot;%lu&quot;, index);
+    });
+    NSLog(@&quot;serial&quot;);
+    dispatch_apply(10, tc_queue_serial, ^(size_t index) {
+        NSLog(@&quot;%lu&quot;, index);
+    });
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 17:07:31.582 demo[5912:48898006] concurrent
+2017-06-08 17:07:31.582 demo[5912:48898185] 0
+2017-06-08 17:07:31.582 demo[5912:48898186] 2
+2017-06-08 17:07:31.582 demo[5912:48898192] 1
+2017-06-08 17:07:31.582 demo[5912:48898006] 3
+2017-06-08 17:07:31.582 demo[5912:48898229] 4
+2017-06-08 17:07:31.583 demo[5912:48898232] 5
+2017-06-08 17:07:31.583 demo[5912:48898230] 6
+2017-06-08 17:07:31.583 demo[5912:48898231] 7
+2017-06-08 17:07:31.583 demo[5912:48898185] 8
+2017-06-08 17:07:31.583 demo[5912:48898186] 9
+2017-06-08 17:07:31.583 demo[5912:48898006] serial
+2017-06-08 17:07:31.583 demo[5912:48898006] 0
+2017-06-08 17:07:31.583 demo[5912:48898006] 1
+2017-06-08 17:07:31.583 demo[5912:48898006] 2
+2017-06-08 17:07:31.584 demo[5912:48898006] 3
+2017-06-08 17:07:31.584 demo[5912:48898006] 4
+2017-06-08 17:07:31.584 demo[5912:48898006] 5
+2017-06-08 17:07:31.584 demo[5912:48898006] 6
+2017-06-08 17:07:31.584 demo[5912:48898006] 7
+2017-06-08 17:07:31.584 demo[5912:48898006] 8
+2017-06-08 17:07:31.584 demo[5912:48898006] 9
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_apply_f&quot;&gt;dispatch_apply_f&lt;/h2&gt;
+
+&lt;p&gt;道理跟&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_asyn_f&lt;/code&gt;一样，不再赘述。&lt;/p&gt;
+
+&lt;h2 id=&quot;dispatch_queue_get_label&quot;&gt;dispatch_queue_get_label&lt;/h2&gt;
+
+&lt;p&gt;获取队列在创建时指定的label。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const char * dispatch_queue_get_label(dispatch_queue_t queue);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-9&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;需要获取label的queue，如果需要获取当前queue的label则直接传&lt;code class=&quot;highlighter-rouge&quot;&gt;DISPATCH_CURRENT_QUEUE_LABEL&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    dispatch_queue_t tc_queue_concurrent = dispatch_queue_create(&quot;com.tc.queue.concurrent&quot;, DISPATCH_QUEUE_CONCURRENT);
+    dispatch_queue_t tc_queue_serial = dispatch_queue_create(&quot;com.tc.queue.serial&quot;, DISPATCH_QUEUE_SERIAL);
+    dispatch_async(tc_queue_concurrent, ^{
+        NSLog(@&quot;%s&quot;, dispatch_queue_get_label(tc_queue_serial));
+        NSLog(@&quot;%s&quot;, dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL));
+    });
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 17:12:54.167 demo[5940:48971595] com.tc.queue.serial
+2017-06-08 17:12:54.167 demo[5940:48971595] com.tc.queue.concurrent
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;dispatch_get_specific&quot;&gt;dispatch_get_specific&lt;/h2&gt;
+
+&lt;p&gt;获取当前队列的标识。最有用的就是防止锁死了，关于&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_get_current_queue&lt;/code&gt;被弃用与之后如何防止锁死推荐念茜的博客&lt;a href=&quot;http://blog.csdn.net/yiyaaixuexi/article/details/17752925&quot; target=&quot;_blank&quot;&gt;被废弃的dispatch_get_current_queue&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void * dispatch_get_specific(const void *key);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-10&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;key&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;标识的key。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;demo留在&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_queue_set_specific&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;dispatch_queue_set_specific&quot;&gt;dispatch_queue_set_specific&lt;/h2&gt;
+
+&lt;p&gt;设置队列的标识。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void dispatch_queue_set_specific(dispatch_queue_t queue, const void *key, void *context, dispatch_function_t destructor);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;参数-11&quot;&gt;参数：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;queue&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;想要加标识的队列。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;key&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;标识的key。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;标识关联的上下文，可为空。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;destructor&lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;上下文的析构函数，可为空，当上下文为空时，这个析构函数会被忽略。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- (void)test
+{
+    static char key;
+    CFStringRef context = CFSTR(&quot;123&quot;);
+    dispatch_queue_t tc_queue = dispatch_queue_create(&quot;com.tc.queue&quot;, DISPATCH_QUEUE_SERIAL);
+    dispatch_queue_set_specific(tc_queue, &amp;amp;key, (void *)context, tc_destructor);
+    dispatch_async(tc_queue, ^{
+        if(dispatch_get_specific(&amp;amp;key))
+        {
+            NSLog(@&quot;1&quot;);
+        }
+    });
+}
+
+void tc_destructor(void *context)
+{
+    CFRelease(context);
+    NSLog(@&quot;2&quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-06-08 17:48:55.721 demo[6182:49461837] 1
+2017-06-08 17:48:55.722 demo[6182:49461835] 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
 </description>
         <pubDate>Wed, 07 Jun 2017 17:46:00 +0800</pubDate>
         <link>http://localhost:4000/gcd/ios/2017/06/07/GCD%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3%E8%A7%A3%E6%9E%90-Managing-Dispatch-Queues.html</link>
