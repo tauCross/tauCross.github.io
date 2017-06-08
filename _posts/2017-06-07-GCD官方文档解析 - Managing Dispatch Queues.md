@@ -783,3 +783,59 @@ void tc_destructor(void *context)
 2017-06-08 17:48:55.722 demo[6182:49461835] 2
 ```
 
+## dispatch_queue_get_specific
+
+与`dispatch_get_specific`用法一致，只是可以获取指定队列的标识，不再赘述。
+
+## dispatch_once_t
+
+不是很懂为毛苹果把这个单独拎出来，不讲不讲我就不讲这个。
+
+## dispatch_once
+
+将提交的block执行并在app的整个生命周期里只执行一次，大多数情况下用在单例上。这个方法是线程安全的，所以可以在任意线程中调用。
+
+```
+void dispatch_once(dispatch_once_t *predicate, dispatch_block_t block);
+```
+
+#### 参数：
+
+* `predicate`
+
+  可以理解为一个标识吧，苹果官方的说法是用来确定这个block是不是已经被执行过了，我猜如果执行过了会给这个参数指向静态变量赋个值，下次再来看到有值就直接忽略这个block了。
+
+* `block`
+
+  需要执行的block。
+
+```
+- (void)test
+{
+    [self tc_once];
+    [self tc_once];
+    [self tc_once];
+}
+
+- (void)tc_once
+{
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSLog(@"1");
+    });
+}
+```
+
+输出：
+
+```
+2017-06-08 17:58:20.908 demo[6528:49590307] 1
+```
+
+## dispatch_once_f
+
+道理跟`dispatch_asyn_f`一样，不再赘述。
+
+## dispatch_main
+
+不是很懂苹果的姿势，这个在`dispatch_get_main_queue`中提过，这个函数是永远不会返回的，莫非有什么黑科技，这个函数有什么黑科技的话，希望大家能够发邮件告诉我。

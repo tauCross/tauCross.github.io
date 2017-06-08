@@ -946,6 +946,67 @@ void tc_destructor(void *context)
 </code></pre>
 </div>
 
+<h2 id="dispatch_queue_get_specific">dispatch_queue_get_specific</h2>
+
+<p>与<code class="highlighter-rouge">dispatch_get_specific</code>用法一致，只是可以获取指定队列的标识，不再赘述。</p>
+
+<h2 id="dispatch_once_t">dispatch_once_t</h2>
+
+<p>不是很懂为毛苹果把这个单独拎出来，不讲不讲我就不讲这个。</p>
+
+<h2 id="dispatch_once">dispatch_once</h2>
+
+<p>将提交的block执行并在app的整个生命周期里只执行一次，大多数情况下用在单例上。这个方法是线程安全的，所以可以在任意线程中调用。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void dispatch_once(dispatch_once_t *predicate, dispatch_block_t block);
+</code></pre>
+</div>
+
+<h4 id="参数-12">参数：</h4>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">predicate</code></p>
+
+    <p>可以理解为一个标识吧，苹果官方的说法是用来确定这个block是不是已经被执行过了，我猜如果执行过了会给这个参数指向静态变量赋个值，下次再来看到有值就直接忽略这个block了。</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">block</code></p>
+
+    <p>需要执行的block。</p>
+  </li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>- (void)test
+{
+    [self tc_once];
+    [self tc_once];
+    [self tc_once];
+}
+
+- (void)tc_once
+{
+    static dispatch_once_t onceToken;
+    dispatch_once(&amp;onceToken, ^{
+        NSLog(@"1");
+    });
+}
+</code></pre>
+</div>
+
+<p>输出：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>2017-06-08 17:58:20.908 demo[6528:49590307] 1
+</code></pre>
+</div>
+
+<h2 id="dispatch_once_f">dispatch_once_f</h2>
+
+<p>道理跟<code class="highlighter-rouge">dispatch_asyn_f</code>一样，不再赘述。</p>
+
+<h2 id="dispatch_main">dispatch_main</h2>
+
+<p>不是很懂苹果的姿势，这个在<code class="highlighter-rouge">dispatch_get_main_queue</code>中提过，这个函数是永远不会返回的，莫非有什么黑科技，这个函数有什么黑科技的话，希望大家能够发邮件告诉我。</p>
 
     </article>
   <!-- </article> -->
